@@ -1,4 +1,4 @@
-from .v0.hosts import HostsApi, HostDetailsApi, HostHistoryApi, IsROSConfiguredApi
+from .v0.hosts import HostsApi, HostDetailsApi, HostHistoryApi, IsROSConfiguredApi, DummyHostsApi
 from .v0.recommendation_ratings import RecommendationRatingsApi
 from .v0.recommendations import RecommendationsApi
 from .v0.openapi_spec import OpenAPISpec
@@ -15,3 +15,4 @@ def initialize_routes(api):
     api.add_resource(HostDetailsApi, '/api/ros/v0/systems/<host_id>')
     api.add_resource(RecommendationRatingsApi, '/api/ros/v0/rating')
     api.add_resource(OpenAPISpec, '/api/ros/v0/openapi.json')
+    api.add_resource(DummyHostsApi, '/api/ros/v0/dummy/systems')

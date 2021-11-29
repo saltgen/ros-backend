@@ -325,3 +325,69 @@ class HostHistoryApi(Resource):
         )
         paginated_response['inventory_id'] = host_id
         return paginated_response
+
+
+class DummyHostsApi(Resource):
+
+    def get(self):
+        response = {
+            "meta": {
+                "count": 2,
+                "limit": 10,
+                "offset": 0
+            },
+            "links": {
+                "first": "/api/ros/v0/systems?limit=10&offset=0",
+                "last": "/api/ros/v0/systems?limit=10&offset=0",
+                "next": None,
+                "previous": None
+            },
+            "data": [
+                {
+                    "fqdn": "ip-172-31-45-168.ap-south-1.compute.internal",
+                    "display_name": "ip-172-31-45-168.ap-south-1.compute.internal",
+                    "inventory_id": "23800e94-f05a-4633-a5a2-0a2a973aca86",
+                    "account": "0000001",
+                    "number_of_suggestions": 1,
+                    "state": "Idling",
+                    "performance_utilization": {
+                        "memory": 40,
+                        "cpu": 50,
+                        "max_io": 5000,
+                        "io_all": {
+                            "vda": 5000,
+                            "vdb": 3648,
+                            "vdc": 1050
+                        }
+                    },
+                    "cloud_provider": "aws",
+                    "instance_type": "t2.micro",
+                    "idling_time": "99.60",
+                    "io_wait": "0.00"
+                },
+                {
+                    "fqdn": "rhel8-test.hyrdvbbl3ugefmkdahnvv2bx1h.rx.internal.cloudapp.net",
+                    "display_name": "rhel8-test.hyrdvbbl3ugefmkdahnvv2bx1h.rx.internal.cloudapp.net",
+                    "inventory_id": "27595764-fd66-4f5e-a74b-a4cc69af945a",
+                    "account": "0000001",
+                    "number_of_suggestions": 1,
+                    "state": "Idling",
+                    "performance_utilization": {
+                        "memory": 40,
+                        "cpu": 50,
+                        "max_io": 5000,
+                        "io_all": {
+                            "vda": 5000,
+                            "vdb": 3648,
+                            "vdc": 1050
+                        }
+                    },
+                    "cloud_provider": "azure",
+                    "instance_type": "Standard_B1s",
+                    "idling_time": "98.90",
+                    "io_wait": "0.10"
+                }
+            ]
+        }
+
+        return response
