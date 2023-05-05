@@ -1,7 +1,7 @@
 import json
 from ros.lib import consume
 from ros.lib.app import app, db
-from ros.lib.utils import get_or_create, system_allowed_in_ros
+from ros.lib.utils import get_or_create, system_allowed_in_ros, update_system_record
 from confluent_kafka import KafkaException
 from ros.lib.models import RhAccount, System
 from ros.lib.config import INVENTORY_EVENTS_TOPIC, METRICS_PORT, get_logger
@@ -119,6 +119,32 @@ class InventoryEventsConsumer:
         """ Store new system information (stale, stale_warning timestamp) and return internal DB id"""
         host = msg['host']
         with app.app_context():
+            if msg.get('type') == 'updated':
+                system_fields = {
+                    "inventory_id": host['id'],
+                    "display_name": host['display_name'],
+                    "fqdn": host['fqdn'],
+                    "cloud_provider": host['system_profile']['cloud_provider'],
+                    "stale_timestamp": host['stale_timestamp'],
+                    "operating_system": host['system_profile']['operating_system'],
+                }
+                system = update_system_record(db.session, System, **system_fields)
+
+                if system is not None:
+                    # Commit changes
+                    db.session.commit()
+                    account = RhAccount.query.filter_by(id=system.tenant_id).first()
+                    processor_requests_success.labels(
+                        reporter=self.reporter, org_id=account.org_id
+                    ).inc()
+                    LOG.info(
+                        f"{self.prefix} - Refreshed system {system.inventory_id} ({system.id}) "
+                        f"belonging to account: {account.account} ({account.id}) and org_id: {account.org_id}"
+                    )
+                else:
+                    LOG.info(
+                        f"{self.prefix} - System {system_fields.get('inventory_id')} does not exist in the database"
+                    )
             try:
                 account = get_or_create(
                     db.session, RhAccount, 'account',

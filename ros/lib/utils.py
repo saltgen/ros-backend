@@ -8,6 +8,7 @@ from flask import jsonify, make_response
 from flask_restful import abort
 from sqlalchemy import Integer
 
+from ros.lib.constants import CloudProvider
 from ros.lib.models import (
     RhAccount,
     System,
@@ -45,6 +46,17 @@ def get_or_create(session, model, keys, **kwargs):
         instance = model(**kwargs)
         session.add(instance)
         session.flush()
+    return instance
+
+
+def update_system_record(session, model, **kwargs):
+    inventory_id = kwargs.get('inventory_id')
+    if inventory_id is None:
+        return
+    instance = session.query(model).filter_by(inventory_id=inventory_id).first()
+    if instance:
+        for k, v in kwargs.items():
+            setattr(instance, k, v)
     return instance
 
 
@@ -255,6 +267,13 @@ def system_allowed_in_ros(msg, reporter):
         is_ros = msg["input"]["platform_metadata"].get("is_ros")
         cloud_provider = msg["results"]["system"]["metadata"].get('cloud_provider')
     elif reporter == 'INVENTORY EVENTS':
-        is_ros = msg["platform_metadata"].get("is_ros")
+        event_type = msg.get('type')
         cloud_provider = msg['host']['system_profile'].get('cloud_provider')
+
+        if event_type == 'updated':
+            if cloud_provider in [provider.value for provider in CloudProvider]:
+                return True
+            else:
+                return False  # covers no cloud_provider check
+        is_ros = msg["platform_metadata"].get("is_ros")
     return validate_ros_payload(is_ros, cloud_provider)

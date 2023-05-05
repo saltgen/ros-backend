@@ -105,3 +105,15 @@ def test_host_delete_event(inventory_event_consumer, db_setup):
     inventory_event_consumer.host_delete_event(msg)
     host = db_get_host(msg['id'])
     assert host is None
+
+
+def test_update_invalid_cloud_provider(inventory_event_consumer, inventory_event_message, db_setup):
+    inventory_event_message['type'] = 'created'
+    inventory_event_consumer.host_create_update_events(inventory_event_message)  # creating system for test
+    inventory_event_message['type'] = 'updated'
+    inventory_event_message['host']['system_profile']['cloud_provider'] = 'azure'
+    updated_display_name = 'Test - Display Name Update'
+    inventory_event_message['host']['display_name'] = updated_display_name
+    inventory_event_consumer.host_create_update_events(inventory_event_message)
+    host = db_get_host(inventory_event_message['host']['id'])
+    assert host.display_name != updated_display_name
